@@ -56,3 +56,17 @@ def trend_series(n: int, start: float = 0.0, step: float = 1.0,
         start + step * i + (rng.uniform(-noise, noise) if noise else 0.0)
         for i in range(n)
     ]
+def two_harmonics_series(n: int = 1000, noise: float = 0.2,
+                         seed: Optional[int] = None) -> List[float]:
+    """Вариант 11: две гармоники + равномерный шум.
+    
+    x[i] = 3*sin(0.05*i) + 0.5*cos(0.3*i) + uniform(-noise, noise)
+    """
+    _validate_n(n)
+    rng = random.Random(seed)
+    return [
+        3.0 * math.sin(0.05 * i)
+        + 0.5 * math.cos(0.3 * i)
+        + rng.uniform(-noise, noise)
+        for i in range(n)
+    ]
