@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Алгоритмическая обработка числовых рядов",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    # источники
+   
     parser.add_argument(
         "--kind",
         choices=["random", "sine", "trend", "two_harmonics"],
@@ -89,7 +89,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--load", metavar="PATH",
         help="загрузить ряд из файла (.json/.txt/.csv)",
     )
-    # экспорт
+   
     parser.add_argument("--save", metavar="PATH", help="сохранить ряд в JSON")
     parser.add_argument("--export", metavar="FILE", help="экспорт ряда в CSV (i, value)")
     # анализ
@@ -109,14 +109,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
 
-    # 1. Получаем ряд
+    
     try:
         data, source = obtain_series(args)
     except ValueError as err:
         print(f"Ошибка получения ряда: {err}", file=sys.stderr)
         return 1
 
-    # 2. Сохранение / экспорт
+
     if args.save:
         meta = {"source": source}
         if not args.load:
@@ -136,7 +136,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"Ошибка экспорта: {err}", file=sys.stderr)
             return 1
 
-    # 3. Базовый анализ
+    
     try:
         stats = summarize(data)
         sma = simple_moving_average(data, args.window)
@@ -189,7 +189,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             timings = benchmark_moving_average(data, args.window, repeats=1000)
             print(f"  list : {timings['list']:.8f} c")
             print(f"  deque: {timings['deque']:.8f} c")
-            print(f"  list/deque: {timings['list'] / timings['deque']:.2f}")
+            print(f"  отношение(list/deque): {timings['list'] / timings['deque']:.2f}")
         except ValueError as err:
             print(f"  [benchmark] {err}", file=sys.stderr)
 
