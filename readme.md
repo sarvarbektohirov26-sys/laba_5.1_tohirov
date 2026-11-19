@@ -5,3 +5,12 @@
 ## Установка
 ```bash
 pip install pytest  # для тестов
+
+
+## Вариант 11 (текстовый режим)
+
+Ряд: x[i] = 3·sin(0.05·i) + 0.5·cos(0.3·i) + uniform(-0.2, 0.2)
+
+Запуск:
+```bash
+python main.py --kind two_harmonics --n 1000 --seed 42

@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Алгоритмическая обработка числовых рядов",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-   
+    # источники
     parser.add_argument(
         "--kind",
         choices=["random", "sine", "trend", "two_harmonics"],
@@ -89,19 +89,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--load", metavar="PATH",
         help="загрузить ряд из файла (.json/.txt/.csv)",
     )
-    
+    # экспорт
     parser.add_argument("--save", metavar="PATH", help="сохранить ряд в JSON")
     parser.add_argument("--export", metavar="FILE", help="экспорт ряда в CSV (i, value)")
-   
+    # анализ
     parser.add_argument("--window", type=int, default=3, help="окно SMA по умолчанию")
     parser.add_argument("--alpha", type=float, default=0.3, help="alpha для EMA")
     parser.add_argument(
         "--window-values", type=int, nargs="+", default=[5, 25, 75],
         help="окна для сравнения сглаживания (вариант 11)",
-    )
-    parser.add_argument(
-        "--plot", metavar="FILE", default=None,
-        help="сохранить график сравнения SMA/EMA в PNG (вариант 11)",
     )
     parser.add_argument(
         "--benchmark", action="store_true",
@@ -113,14 +109,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
 
-    
+    # 1. Получаем ряд
     try:
         data, source = obtain_series(args)
     except ValueError as err:
         print(f"Ошибка получения ряда: {err}", file=sys.stderr)
         return 1
 
-    
+    # 2. Сохранение / экспорт
     if args.save:
         meta = {"source": source}
         if not args.load:
@@ -140,7 +136,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"Ошибка экспорта: {err}", file=sys.stderr)
             return 1
 
-    
+    # 3. Базовый анализ
     try:
         stats = summarize(data)
         sma = simple_moving_average(data, args.window)
@@ -161,7 +157,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     if cma is not None:
         print_series(f"Центрированное MA (window={args.window})", cma)
 
-    #Вариант 11
+    # 4. Вариант 11
     if args.kind == "two_harmonics":
         maxima, minima = find_extrema(data)
         print("-" * 60)
@@ -172,8 +168,6 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         print("-" * 60)
         print("Сравнение сглаживания (SMA vs EMA):")
-        sma_results = {}
-        ema_results = {}
         for k in args.window_values:
             if k > len(data):
                 print(f"  [WARN] k={k} > n={len(data)}: пропускаем SMA")
@@ -184,22 +178,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             sma_k = simple_moving_average(data, k)
             alpha_k = 2.0 / (k + 1)
             ema_k = exponential_moving_average(data, alpha_k)
-            sma_results[k] = sma_k
-            ema_results[k] = ema_k
-            print(f"  k={k:>3}: α = 2/(k+1) = {alpha_k:.4f}")
-
-        if args.plot and sma_results:
-            from num_series.plotting import plot_smoothing_comparison
-            try:
-                plot_smoothing_comparison(
-                    data,
-                    list(sma_results.keys()),
-                    sma_results,
-                    ema_results,
-                    output_path=args.plot,
-                )
-            except RuntimeError as err:
-                print(f"[plot] {err}", file=sys.stderr)
+            print(f"  k={k:>3}: α = 2/(k+1) = {alpha_k:.4f}, "
+                  f"SMA len = {len(sma_k)}, EMA len = {len(ema_k)}")
 
     # 5. Бенчмарк
     if args.benchmark:
